@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect.gui;
+package it.wtfcode.rocknet.utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,36 +91,5 @@ public class UIComponents {
         dropdown.addProperty("defaultOptionIndex", defaultIndex);
         return dropdown;
     }
-
-    public static String serversToFormData(List<String> list) {
-        String listString = "[";
-        for(int i=0;i<list.size();i++) {
-            listString += '"' + list.get(i) + '"';
-            if(i != list.size()-1)
-                listString += ",";
-        }
-        listString += "]";
-        return listString;
-    }
-
-    public static ArrayList<String> getFormData(String data) {
-        JSONParser parser = new JSONParser();
-
-        // If no server data
-        if(data == null)
-            return new ArrayList<>();
-
-        try {
-            JSONArray obj = (JSONArray) parser.parse(data);
-            ArrayList<String> strings = new ArrayList<>();
-            for(int i=0;i<obj.size();i++) {
-                strings.add(obj.get(i).toString());
-            }
-            return strings;
-        } catch(ParseException e) {
-            System.out.println(e.toString());
-        }
-
-        return null;
-    }
+    
 }

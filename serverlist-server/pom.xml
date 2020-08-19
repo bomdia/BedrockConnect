@@ -4,9 +4,9 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.pyratron.pugmatt</groupId>
-    <artifactId>BedrockConnect</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <groupId>it.wtfcode.rocknet</groupId>
+    <artifactId>RockNet</artifactId>
+    <version>2.0-SNAPSHOT</version>
 
     <build>
         <sourceDirectory>src</sourceDirectory>
@@ -21,7 +21,7 @@
                         <manifest>
                             <addClasspath>true</addClasspath>
                             <classpathPrefix>lib/</classpathPrefix>
-                            <mainClass>main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect</mainClass>
+                            <mainClass>it.wtfcode.rocknet.Main</mainClass>
                         </manifest>
                     </archive>
                 </configuration>

@@ -1,33 +1,5 @@
 package main.com.pyratron.pugmatt.bedrockconnect.listeners;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.JsonNodeType;
-import com.nimbusds.jwt.SignedJWT;
-import com.nukkitx.math.vector.Vector3f;
-import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.network.util.Preconditions;
-import com.nukkitx.protocol.bedrock.BedrockClient;
-import com.nukkitx.protocol.bedrock.packet.*;
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
-import com.nukkitx.protocol.bedrock.packet.LoginPacket;
-import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-import com.nukkitx.protocol.bedrock.v388.Bedrock_v388;
-import com.nukkitx.protocol.bedrock.v407.Bedrock_v407;
-import io.netty.util.AsciiString;
-import io.netty.util.internal.ThreadLocalRandom;
-import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
-import main.com.pyratron.pugmatt.bedrockconnect.Server;
-import main.com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
-import main.com.pyratron.pugmatt.bedrockconnect.gui.UIForms;
-import net.minidev.json.JSONObject;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.security.interfaces.ECPublicKey;
@@ -36,6 +8,27 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSObject;
+import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.network.util.Preconditions;
+import com.nukkitx.protocol.bedrock.BedrockClient;
+import com.nukkitx.protocol.bedrock.BedrockServerSession;
+import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
+import com.nukkitx.protocol.bedrock.packet.*;
+import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
+
+import io.netty.util.internal.ThreadLocalRandom;
+import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
+import main.com.pyratron.pugmatt.bedrockconnect.Server;
+import main.com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
+import main.com.pyratron.pugmatt.bedrockconnect.gui.UIForms;
+import net.minidev.json.JSONObject;
 
 // Heavily referenced from https://github.com/NukkitX/ProxyPass/blob/master/src/main/java/com/nukkitx/proxypass/network/bedrock/session/UpstreamPacketHandler.java
 

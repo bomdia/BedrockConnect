@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect.utils.math;
+package it.wtfcode.rocknet.utils.math;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;

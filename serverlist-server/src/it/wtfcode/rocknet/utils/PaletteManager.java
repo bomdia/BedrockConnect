@@ -1,4 +1,13 @@
-package main.com.pyratron.pugmatt.bedrockconnect.utils;
+package it.wtfcode.rocknet.utils;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -9,13 +18,9 @@ import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
-import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
 
-import java.io.*;
-import java.nio.ByteOrder;
-import java.util.*;
+import io.netty.buffer.ByteBuf;
+import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
 
 // https://github.com/DragonetMC/DragonProxy/blob/rewrite/proxy/src/main/java/org/dragonet/proxy/util/PaletteManager.java
 // Author: lukeeey

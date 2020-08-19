@@ -1,8 +1,8 @@
 package main.com.pyratron.pugmatt.bedrockconnect;
 
-import com.nukkitx.protocol.bedrock.BedrockPacket;
-
 import java.util.ArrayList;
+
+import com.nukkitx.protocol.bedrock.BedrockPacket;
 
 public class PacketCatcher {
 

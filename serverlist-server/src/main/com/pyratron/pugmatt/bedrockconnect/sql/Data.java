@@ -1,18 +1,7 @@
 package main.com.pyratron.pugmatt.bedrockconnect.sql;
 
-import com.nukkitx.protocol.bedrock.Bedrock;
-import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.BedrockSession;
-import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
-import main.com.pyratron.pugmatt.bedrockconnect.PipePlayer;
-import main.com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,6 +9,16 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import com.nukkitx.protocol.bedrock.BedrockServerSession;
+
+import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
+import main.com.pyratron.pugmatt.bedrockconnect.PipePlayer;
+import main.com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
 
 public class Data {
 

@@ -1,12 +1,10 @@
 package main.com.pyratron.pugmatt.bedrockconnect.gui;
 
+import java.util.List;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
-
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.List;
 
 public class UIForms {
     public static final int ERROR = 2, MAIN = 0, DIRECT_CONNECT = 1, REMOVE_SERVER = 3, DONATION = 4;

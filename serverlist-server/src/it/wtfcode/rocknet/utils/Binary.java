@@ -1,10 +1,10 @@
-package main.com.pyratron.pugmatt.bedrockconnect.utils;
-
-import main.com.pyratron.pugmatt.bedrockconnect.utils.math.NukkitMath;
+package it.wtfcode.rocknet.utils;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.UUID;
+
+import it.wtfcode.rocknet.utils.math.NukkitMath;
 
 /**
  * author: MagicDroidX Nukkit Project

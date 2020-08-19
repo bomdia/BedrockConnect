@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect.utils;
+package it.wtfcode.rocknet.utils;
 
 import java.io.IOException;
 import java.io.InputStream;

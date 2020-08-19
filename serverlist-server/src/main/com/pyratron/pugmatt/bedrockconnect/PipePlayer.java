@@ -1,28 +1,34 @@
 package main.com.pyratron.pugmatt.bedrockconnect;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import com.nukkitx.math.vector.Vector2f;
+import com.nukkitx.math.vector.Vector3f;
 import com.nukkitx.math.vector.Vector3i;
 import com.nukkitx.nbt.NBTOutputStream;
 import com.nukkitx.nbt.NbtMap;
-import com.nukkitx.nbt.NbtMapBuilder;
 import com.nukkitx.nbt.NbtUtils;
-import com.nukkitx.protocol.bedrock.Bedrock;
-import com.nukkitx.protocol.bedrock.BedrockPacket;
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-import com.nukkitx.protocol.bedrock.data.*;
-import com.nukkitx.protocol.bedrock.data.inventory.ContainerId;
-import com.nukkitx.protocol.bedrock.packet.*;
-import com.nukkitx.math.vector.Vector3f;
+import com.nukkitx.protocol.bedrock.data.AttributeData;
+import com.nukkitx.protocol.bedrock.data.GamePublishSetting;
+import com.nukkitx.protocol.bedrock.data.GameRuleData;
+import com.nukkitx.protocol.bedrock.data.GameType;
+import com.nukkitx.protocol.bedrock.data.PlayerPermission;
+import com.nukkitx.protocol.bedrock.packet.AvailableEntityIdentifiersPacket;
+import com.nukkitx.protocol.bedrock.packet.BiomeDefinitionListPacket;
+import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
+import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
+import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
+import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
+import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
+import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+
+import it.wtfcode.rocknet.utils.PaletteManager;
 import main.com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
 import main.com.pyratron.pugmatt.bedrockconnect.sql.Data;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 public class PipePlayer {
 
@@ -182,16 +188,15 @@ public class PipePlayer {
         }
 
         BiomeDefinitionListPacket biomePacket = new BiomeDefinitionListPacket();
-        biomePacket.setDefinitions(BedrockConnect.paletteManager.BIOMES);
+        biomePacket.setDefinitions(PaletteManager.BIOMES);
         session.sendPacket(biomePacket);
 
         AvailableEntityIdentifiersPacket entityPacket = new AvailableEntityIdentifiersPacket();
-        entityPacket.setIdentifiers(BedrockConnect.paletteManager.ENTITY_IDENTIFIERS);
+        entityPacket.setIdentifiers(PaletteManager.ENTITY_IDENTIFIERS);
         session.sendPacket(entityPacket);
 
-        InventoryContentPacket creativePacket = new InventoryContentPacket();
-        creativePacket.setContainerId(ContainerId.CREATIVE); //TODO: Why is this deprecated?
-        creativePacket.setContents(BedrockConnect.paletteManager.CREATIVE_ITEMS);
+        CreativeContentPacket creativePacket = new CreativeContentPacket();
+        creativePacket.setContents(PaletteManager.CREATIVE_ITEMS);
         session.sendPacket(creativePacket);
 
         PlayStatusPacket playStatus = new PlayStatusPacket();
