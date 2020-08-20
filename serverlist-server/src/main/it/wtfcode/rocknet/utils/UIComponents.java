@@ -1,11 +1,6 @@
 package it.wtfcode.rocknet.utils;
 
-import java.util.ArrayList;
 import java.util.List;
-
-import org.json.simple.JSONArray;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

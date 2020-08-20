@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect.sql;
+package com.pyratron.pugmatt.bedrockconnect.sql;
 
 import java.sql.Connection;
 import java.sql.DriverManager;

@@ -1,0 +1,12 @@
+{
+  "dbDriverClass" : "it.wtfcode.rocknet.db.impl.RockNetSQLite",
+  "dbDriverData" : { },
+  "address" : "0.0.0.0",
+  "port" : 19132,
+  "maxConnectedPlayers" : 20,
+  "title" : "Join to get ServerList",
+  "subTitle" : "RockNet ServerList",
+  "enablePreferred" : true,
+  "enableDebug" : true,
+  "showServersIcon" : true
+}

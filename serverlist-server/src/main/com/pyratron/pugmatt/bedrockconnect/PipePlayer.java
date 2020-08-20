@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect;
+package com.pyratron.pugmatt.bedrockconnect;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,10 +25,11 @@ import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
+import com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
+import com.pyratron.pugmatt.bedrockconnect.sql.Data;
 
+import it.wtfcode.rocknet.Main;
 import it.wtfcode.rocknet.utils.PaletteManager;
-import main.com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
-import main.com.pyratron.pugmatt.bedrockconnect.sql.Data;
 
 public class PipePlayer {
 
@@ -163,7 +164,7 @@ public class PipePlayer {
         startGamePacket.setEnchantmentSeed(0);
         startGamePacket.setMultiplayerCorrelationId("");
 
-        startGamePacket.setBlockPalette(BedrockConnect.paletteManager.CACHED_PALLETE);
+        startGamePacket.setBlockPalette(Main.getPaletteManager().getCachedPalette());
 
         session.sendPacket(startGamePacket);
 

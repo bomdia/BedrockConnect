@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="OFF">
+	<Properties>
+	    <Property name="log-path">logs</Property><!-- ${sys:catalina.base}/logs -->
+	</Properties>
+	<Appenders>
+		<Console name="CONSOLE" target="SYSTEM_OUT">
+			<PatternLayout pattern="[%-5level] %d{dd-MM-yyyy HH:mm:ss.SSS} [%t] [%logger{36}.%M()]> %msg%n" />
+		</Console>
+		<!-- file appender -->
+	    <RollingFile name="logfile" filePattern="${log-path}/%d{yyyy-MM-dd}-common.log">
+	        <!-- log pattern -->
+	        <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] [%-5level] [%logger{36}.%M()]> %msg%n" />
+	
+	        <!-- set file size policy -->
+	        <Policies>
+	            <TimeBasedTriggeringPolicy  interval="1" modulate="true"/>
+	        </Policies>
+	    </RollingFile>
+	</Appenders>
+	<Loggers>
+		<logger name="it.wtfcode" level="TRACE" >
+		        <appender-ref ref="CONSOLE" level="DEBUG"/>
+		        <appender-ref ref="logfile" level="TRACE"/>
+		</logger>
+		<Root level="OFF" />
+	</Loggers>
+</Configuration>

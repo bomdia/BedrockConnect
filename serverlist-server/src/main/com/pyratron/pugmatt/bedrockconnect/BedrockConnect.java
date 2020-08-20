@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect;
+package com.pyratron.pugmatt.bedrockconnect;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -15,9 +15,10 @@ import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.pyratron.pugmatt.bedrockconnect.sql.Data;
+import com.pyratron.pugmatt.bedrockconnect.sql.MySQL;
+
 import it.wtfcode.rocknet.utils.PaletteManager;
-import main.com.pyratron.pugmatt.bedrockconnect.sql.Data;
-import main.com.pyratron.pugmatt.bedrockconnect.sql.MySQL;
 
 public class BedrockConnect {
 

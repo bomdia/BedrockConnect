@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect.gui;
+package com.pyratron.pugmatt.bedrockconnect.gui;
 
 import java.util.ArrayList;
 import java.util.List;

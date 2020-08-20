@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect.listeners;
+package com.pyratron.pugmatt.bedrockconnect.listeners;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -22,12 +22,12 @@ import com.nukkitx.protocol.bedrock.BedrockServerSession;
 import com.nukkitx.protocol.bedrock.handler.BedrockPacketHandler;
 import com.nukkitx.protocol.bedrock.packet.*;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
+import com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
+import com.pyratron.pugmatt.bedrockconnect.Server;
+import com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
+import com.pyratron.pugmatt.bedrockconnect.gui.UIForms;
 
 import io.netty.util.internal.ThreadLocalRandom;
-import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
-import main.com.pyratron.pugmatt.bedrockconnect.Server;
-import main.com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
-import main.com.pyratron.pugmatt.bedrockconnect.gui.UIForms;
 import net.minidev.json.JSONObject;
 
 // Heavily referenced from https://github.com/NukkitX/ProxyPass/blob/master/src/main/java/com/nukkitx/proxypass/network/bedrock/session/UpstreamPacketHandler.java
@@ -919,134 +919,134 @@ public class PacketHandler implements BedrockPacketHandler {
     public boolean handle(ModalFormResponsePacket packet) {
         if(print)
             System.out.println(packet.toString());
-            switch (packet.getFormId()) {
-                case UIForms.MAIN:
-                    if(UIForms.currentForm == UIForms.MAIN) {
-                        // If exiting main window
-                        if (packet.getFormData().contains("null")) {
-                            session.disconnect("Exiting Server List");
-                        } else { // If selecting button
-                            int chosen = Integer.parseInt(packet.getFormData().replaceAll("\\s+",""));
-                            if (chosen == 0) { // Add Server
-                                session.sendPacketImmediately(UIForms.createDirectConnect());
-                            } else if (chosen == 1) { // Remove Server
-                                session.sendPacketImmediately(UIForms.createRemoveServer(server.getPlayer(uuid).getServerList()));
-                            } else { // Choosing Server
+        switch (packet.getFormId()) {
+            case UIForms.MAIN:
+                if(UIForms.currentForm == UIForms.MAIN) {
+                    // If exiting main window
+                    if (packet.getFormData().contains("null")) {
+                        session.disconnect("Exiting Server List");
+                    } else { // If selecting button
+                        int chosen = Integer.parseInt(packet.getFormData().replaceAll("\\s+",""));
+                        if (chosen == 0) { // Add Server
+                            session.sendPacketImmediately(UIForms.createDirectConnect());
+                        } else if (chosen == 1) { // Remove Server
+                            session.sendPacketImmediately(UIForms.createRemoveServer(server.getPlayer(uuid).getServerList()));
+                        } else { // Choosing Server
 
-                                // If server chosen is a featued server
-                                if(chosen-2 > server.getPlayer(uuid).getServerList().size()-1) {
-                                    int featuredServer = (chosen - 2) - (server.getPlayer(uuid).getServerList().size() - 1);
+                            // If server chosen is a featued server
+                            if(chosen-2 > server.getPlayer(uuid).getServerList().size()-1) {
+                                int featuredServer = (chosen - 2) - (server.getPlayer(uuid).getServerList().size() - 1);
 
-                                    switch (featuredServer) {
-                                        case 1: // Hive
-                                            transfer("54.39.75.136", 19132);
-                                            break;
-                                        case 2: // Mineplex
-                                            transfer("108.178.12.125", 19132);
-                                            break;
-                                        case 3: // Cubecraft
-                                            transfer("213.32.11.233", 19132);
-                                            break;
-                                        case 4: // Lifeboat
-                                            transfer("63.143.40.66", 19132);
-                                            break;
-                                        case 5: // Mineville
-                                            transfer("52.234.131.7", 19132);
-                                            break;
-                                        case 6: // Galaxite
-                                            transfer("51.89.152.241", 19132);
-                                            break;
+                                switch (featuredServer) {
+                                    case 1: // Hive
+                                        transfer("54.39.75.136", 19132);
+                                        break;
+                                    case 2: // Mineplex
+                                        transfer("108.178.12.125", 19132);
+                                        break;
+                                    case 3: // Cubecraft
+                                        transfer("213.32.11.233", 19132);
+                                        break;
+                                    case 4: // Lifeboat
+                                        transfer("63.143.40.66", 19132);
+                                        break;
+                                    case 5: // Mineville
+                                        transfer("52.234.131.7", 19132);
+                                        break;
+                                    case 6: // Galaxite
+                                        transfer("51.89.152.241", 19132);
+                                        break;
+                                }
+                            } else { // If server chosen is not a featured server
+                                String address = server.getPlayer(uuid).getServerList().get(chosen-2);
+
+                                if (address.split(":").length > 1) {
+                                    String ip = address.split(":")[0];
+                                    String port = address.split(":")[1];
+
+                                    try {
+                                        transfer(ip, Integer.parseInt(port));
+                                    } catch (Exception e) {
+                                        session.sendPacketImmediately(UIForms.createError("Error connecting to server. Invalid address."));
                                     }
-                                } else { // If server chosen is not a featured server
-                                    String address = server.getPlayer(uuid).getServerList().get(chosen-2);
-
-                                    if (address.split(":").length > 1) {
-                                        String ip = address.split(":")[0];
-                                        String port = address.split(":")[1];
-
-                                        try {
-                                            transfer(ip, Integer.parseInt(port));
-                                        } catch (Exception e) {
-                                            session.sendPacketImmediately(UIForms.createError("Error connecting to server. Invalid address."));
-                                        }
-                                    } else {
-                                        session.sendPacketImmediately(UIForms.createError("Invalid server address"));
-                                    }
+                                } else {
+                                    session.sendPacketImmediately(UIForms.createError("Invalid server address"));
                                 }
                             }
                         }
                     }
-                    break;
-                case UIForms.DIRECT_CONNECT:
-                    try {
-                        if(packet.getFormData().contains("null"))
-                            session.sendPacketImmediately(UIForms.createMain(server.getPlayer(uuid).getServerList()));
-                        else {
-                            ArrayList<String> data = UIComponents.getFormData(packet.getFormData());
-                            if(data.size() > 1) {
-                                // Remove any whitespace
-                                data.set(0, data.get(0).replaceAll("\\s",""));
-                                data.set(1, data.get(1).replaceAll("\\s",""));
+                }
+                break;
+            case UIForms.DIRECT_CONNECT:
+                try {
+                    if(packet.getFormData().contains("null"))
+                        session.sendPacketImmediately(UIForms.createMain(server.getPlayer(uuid).getServerList()));
+                    else {
+                        ArrayList<String> data = UIComponents.getFormData(packet.getFormData());
+                        if(data.size() > 1) {
+                            // Remove any whitespace
+                            data.set(0, data.get(0).replaceAll("\\s",""));
+                            data.set(1, data.get(1).replaceAll("\\s",""));
 
-                                if(data.get(0).length() >= 253)
-                                    session.sendPacketImmediately(UIForms.createError("Address is too large. (Must be less than 253)"));
-                                else if(data.get(1).length() >= 10)
-                                    session.sendPacketImmediately(UIForms.createError("Port is too large. (Must be less than 10)"));
-                                else if (!data.get(0).matches("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$") && !data.get(0).matches("^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$"))
-                                    session.sendPacketImmediately(UIForms.createError("Enter a valid address. (E.g. play.example.net, 172.16.254.1)"));
-                                else if (!data.get(1).matches("[0-9]+"))
-                                    session.sendPacketImmediately(UIForms.createError("Enter a valid port that contains only numbers"));
-                                else {
-                                    boolean addServer = Boolean.parseBoolean(data.get(2));
-                                    if (addServer) {
-                                        List<String> serverList = server.getPlayer(uuid).getServerList();
-                                        if (serverList.size() >= server.getPlayer(uuid).getServerLimit())
-                                            session.sendPacketImmediately(UIForms.createError("You have hit your serverlist limit of " + server.getPlayer(uuid).getServerLimit() + " servers. Remove some to add more."));
-                                        else {
-                                            serverList.add(data.get(0) + ":" + data.get(1));
-                                            server.getPlayer(uuid).setServerList(serverList);
-                                            transfer(data.get(0).replace(" ", ""), Integer.parseInt(data.get(1)));
-                                        }
-                                    } else {
-                                        TransferPacket tp = new TransferPacket();
-                                        tp.setAddress(data.get(0).replace(" ", ""));
-                                        tp.setPort(Integer.parseInt(data.get(1)));
-                                        session.sendPacketImmediately(tp);
+                            if(data.get(0).length() >= 253)
+                                session.sendPacketImmediately(UIForms.createError("Address is too large. (Must be less than 253)"));
+                            else if(data.get(1).length() >= 10)
+                                session.sendPacketImmediately(UIForms.createError("Port is too large. (Must be less than 10)"));
+                            else if (!data.get(0).matches("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$") && !data.get(0).matches("^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$"))
+                                session.sendPacketImmediately(UIForms.createError("Enter a valid address. (E.g. play.example.net, 172.16.254.1)"));
+                            else if (!data.get(1).matches("[0-9]+"))
+                                session.sendPacketImmediately(UIForms.createError("Enter a valid port that contains only numbers"));
+                            else {
+                                boolean addServer = Boolean.parseBoolean(data.get(2));
+                                if (addServer) {
+                                    List<String> serverList = server.getPlayer(uuid).getServerList();
+                                    if (serverList.size() >= server.getPlayer(uuid).getServerLimit())
+                                        session.sendPacketImmediately(UIForms.createError("You have hit your serverlist limit of " + server.getPlayer(uuid).getServerLimit() + " servers. Remove some to add more."));
+                                    else {
+                                        serverList.add(data.get(0) + ":" + data.get(1));
+                                        server.getPlayer(uuid).setServerList(serverList);
+                                        transfer(data.get(0).replace(" ", ""), Integer.parseInt(data.get(1)));
                                     }
+                                } else {
+                                    TransferPacket tp = new TransferPacket();
+                                    tp.setAddress(data.get(0).replace(" ", ""));
+                                    tp.setPort(Integer.parseInt(data.get(1)));
+                                    session.sendPacketImmediately(tp);
                                 }
                             }
                         }
-                    } catch(Exception e) {
-                        session.sendPacketImmediately(UIForms.createError("Please enter a valid IP/Address and port that contains only numbers."));
                     }
-                    break;
-                case UIForms.REMOVE_SERVER:
-                    try {
-                        if(packet.getFormData().contains("null"))
-                            session.sendPacketImmediately(UIForms.createMain(server.getPlayer(uuid).getServerList()));
-                        else {
-                            ArrayList<String> data = UIComponents.getFormData(packet.getFormData());
+                } catch(Exception e) {
+                    session.sendPacketImmediately(UIForms.createError("Please enter a valid IP/Address and port that contains only numbers."));
+                }
+                break;
+            case UIForms.REMOVE_SERVER:
+                try {
+                    if(packet.getFormData().contains("null"))
+                        session.sendPacketImmediately(UIForms.createMain(server.getPlayer(uuid).getServerList()));
+                    else {
+                        ArrayList<String> data = UIComponents.getFormData(packet.getFormData());
 
-                            int chosen = Integer.parseInt(data.get(0));
+                        int chosen = Integer.parseInt(data.get(0));
 
-                            List<String> serverList = server.getPlayer(uuid).getServerList();
-                            serverList.remove(chosen);
+                        List<String> serverList = server.getPlayer(uuid).getServerList();
+                        serverList.remove(chosen);
 
-                            server.getPlayer(uuid).setServerList(serverList);
+                        server.getPlayer(uuid).setServerList(serverList);
 
-                            session.sendPacketImmediately(UIForms.createMain(serverList));
-                        }
-                    } catch(Exception e) {
-                        session.sendPacketImmediately(UIForms.createError("Invalid server to remove"));
+                        session.sendPacketImmediately(UIForms.createMain(serverList));
                     }
-                    break;
-                case UIForms.ERROR:
-                    session.sendPacketImmediately(UIForms.createMain(server.getPlayer(uuid).getServerList()));
-                    break;
-                case UIForms.DONATION:
-                    session.sendPacketImmediately(UIForms.createMain(server.getPlayer(uuid).getServerList()));
-                    break;
-            }
+                } catch(Exception e) {
+                    session.sendPacketImmediately(UIForms.createError("Invalid server to remove"));
+                }
+                break;
+            case UIForms.ERROR:
+                session.sendPacketImmediately(UIForms.createMain(server.getPlayer(uuid).getServerList()));
+                break;
+            case UIForms.DONATION:
+                session.sendPacketImmediately(UIForms.createMain(server.getPlayer(uuid).getServerList()));
+                break;
+        }
         return false;
     }
 

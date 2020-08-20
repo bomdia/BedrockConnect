@@ -18,9 +18,9 @@ import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
+import com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
 
 import io.netty.buffer.ByteBuf;
-import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
 
 // https://github.com/DragonetMC/DragonProxy/blob/rewrite/proxy/src/main/java/org/dragonet/proxy/util/PaletteManager.java
 // Author: lukeeey
@@ -29,9 +29,9 @@ public class PaletteManager {
 
     private ArrayList<RuntimeEntry> entries;
 
-    private ByteBuf cachedPalette;
+    private ByteBuf cachedPalettes;
 
-    public NbtList<NbtMap> CACHED_PALLETE;
+    private NbtList<NbtMap> cachedPalette;
 
     public static final NbtMap BIOMES;
 
@@ -122,10 +122,14 @@ public class PaletteManager {
             throw new AssertionError(ex);
         }
 
-        CACHED_PALLETE = tag;
+        cachedPalette = tag;
     }
 
-    private static class RuntimeEntry {
+    public NbtList<NbtMap> getCachedPalette() {
+		return cachedPalette;
+	}
+
+	private static class RuntimeEntry {
         @JsonProperty("name")
         private String name;
         @JsonProperty("id")

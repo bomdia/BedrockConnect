@@ -1,4 +1,4 @@
-package main.com.pyratron.pugmatt.bedrockconnect.sql;
+package com.pyratron.pugmatt.bedrockconnect.sql;
 
 import java.io.File;
 import java.io.FileReader;
@@ -15,10 +15,9 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import com.nukkitx.protocol.bedrock.BedrockServerSession;
-
-import main.com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
-import main.com.pyratron.pugmatt.bedrockconnect.PipePlayer;
-import main.com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
+import com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
+import com.pyratron.pugmatt.bedrockconnect.PipePlayer;
+import com.pyratron.pugmatt.bedrockconnect.gui.UIComponents;
 
 public class Data {
 
