@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
@@ -29,6 +31,8 @@ import com.nukkitx.protocol.bedrock.packet.ChunkRadiusUpdatedPacket;
 import com.nukkitx.protocol.bedrock.packet.CreativeContentPacket;
 import com.nukkitx.protocol.bedrock.packet.LevelChunkPacket;
 import com.nukkitx.protocol.bedrock.packet.LoginPacket;
+import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
+import com.nukkitx.protocol.bedrock.packet.ModalFormResponsePacket;
 import com.nukkitx.protocol.bedrock.packet.MovePlayerPacket;
 import com.nukkitx.protocol.bedrock.packet.PlayStatusPacket;
 import com.nukkitx.protocol.bedrock.packet.RequestChunkRadiusPacket;
@@ -41,20 +45,29 @@ import com.nukkitx.protocol.bedrock.packet.StartGamePacket;
 import com.nukkitx.protocol.bedrock.packet.TransferPacket;
 import com.nukkitx.protocol.bedrock.packet.UpdateAttributesPacket;
 import com.nukkitx.protocol.bedrock.util.EncryptionUtils;
-import com.pyratron.pugmatt.bedrockconnect.Server;
-import com.pyratron.pugmatt.bedrockconnect.gui.UIForms;
 
+import cn.nukkit.form.window.FormWindow;
+import it.wtfcode.rocknet.gui.AddForm;
+import it.wtfcode.rocknet.gui.EditForm;
+import it.wtfcode.rocknet.gui.ErrorForm;
+import it.wtfcode.rocknet.gui.FormsType;
+import it.wtfcode.rocknet.gui.FormsType.IFormsType;
 import it.wtfcode.rocknet.gui.MainForm;
+import it.wtfcode.rocknet.gui.ManageForm;
+import it.wtfcode.rocknet.gui.ManageListForm;
+import it.wtfcode.rocknet.pojo.RockNetServer;
 import it.wtfcode.rocknet.pojo.RockNetUser;
 import it.wtfcode.rocknet.utils.PaletteManager;
 import net.minidev.json.JSONObject;
 
 public class RockNetHandler implements BedrockPacketHandler{
 
-
+	private static final Logger log = LogManager.getLogger(RockNetHandler.class.getName());
 	private BedrockServerSession session;
 	private RockNetServerInstance rockNetServer;
 	private RockNetUser currentUser;
+	private FormWindow currentForm;
+	private List<RockNetServer> manageUserServersList;
 	
     public RockNetHandler(BedrockServerSession session, RockNetServerInstance rockNetServer) {
 		this.session = session;
@@ -62,12 +75,134 @@ public class RockNetHandler implements BedrockPacketHandler{
 		this.session.addDisconnectHandler((DisconnectReason) -> disconnect());
 	}
 
+	public static ModalFormRequestPacket createRequest(FormsType type, FormWindow form) {
+		ModalFormRequestPacket mf = new ModalFormRequestPacket();
+		mf.setFormId(type.ordinal());
+        mf.setFormData(form.getJSONData());
+        log.debug("request form data:");
+        log.debug(form.getJSONData());
+        return mf;
+	}
+    
     @Override
     public boolean handle(SetLocalPlayerAsInitializedPacket packet) {
-        session.sendPacketImmediately(new MainForm(currentUser.getServerList()));
+    	goToMainForm();
         return false;
     }
     
+    @Override
+    public boolean handle(ModalFormResponsePacket packet) {
+    	if(validFormPacket(packet)) {
+	    	currentForm.setResponse(packet.getFormData());
+	    	
+	        final FormsType formType = ((IFormsType)currentForm).getType();
+	        
+			switch (formType) {
+	        case MAIN:
+	        	if (currentForm.wasClosed()) //if you close main form you want to exit
+	        		session.disconnect("Bye Bye RockNet User! <3");
+	        	else {
+	        		MainForm form = (MainForm) currentForm;
+	        		int chosen = form.getResponse().getClickedButtonId();
+	        		if(chosen >= form.getContextButton()) { //server List
+	        			RockNetServer server = currentUser.getServerList().get(chosen-form.getContextButton());
+	        			try {
+		        			transfer(server.getServerAddress(),server.getServerPort());
+	        			} catch (Exception e) {
+	        				goToErrorForm("Error connecting to server. Invalid address.");
+	        			}
+	        		}else { //context menu
+	        			if(StringUtils.equals(form.getResponse().getClickedButton().getText(),MainForm.ADD_A_SERVER)) {
+	        				goToAddForm();
+	        			}else if(StringUtils.equals(form.getResponse().getClickedButton().getText(),MainForm.MANAGE_A_SERVER)) {
+	        				goToManageForm();
+	        			}
+	        		}
+	        	}
+	        	break;
+			case ADD:
+				if (currentForm.wasClosed()) {
+					goToMainForm();
+				}else {
+					AddForm form = (AddForm) currentForm;
+					String serverName = form.getResponse().getInputResponse(AddForm.Inputs.SERVER_NAME.ordinal());
+					String serverAddress = form.getResponse().getInputResponse(AddForm.Inputs.SERVER_ADDRESS.ordinal());
+					String serverPort = form.getResponse().getInputResponse(AddForm.Inputs.SERVER_PORT.ordinal());
+					boolean addToList = form.getResponse().getToggleResponse(AddForm.Toggles.ADD_LIST.ordinal());
+					boolean isPreferred = form.getResponse().getToggleResponse(AddForm.Toggles.PREFERRED.ordinal());
+					
+					if(isValidServer(serverName,serverAddress,serverPort,addToList)) {
+						Integer sPort = Integer.valueOf(serverPort);
+						if(addToList) {
+							rockNetServer.getIRockNetDB().createServer(serverAddress, sPort, "", isPreferred);
+							rockNetServer.getIRockNetDB().attachUserToServer(currentUser.getXuid(), serverAddress, sPort, serverName, isPreferred);
+							goToMainForm();
+						} else {
+							transfer(serverAddress,sPort);
+						}
+					}
+				}
+				break;
+			case EDIT:
+				if (currentForm.wasClosed()) {
+					goToMainForm();
+				}else {
+					EditForm form = (EditForm) currentForm;
+					String serverName = form.getResponse().getInputResponse(EditForm.Inputs.SERVER_NAME.ordinal());
+					String serverAddress = form.getResponse().getInputResponse(EditForm.Inputs.SERVER_ADDRESS.ordinal());
+					String serverPort = form.getResponse().getInputResponse(EditForm.Inputs.SERVER_PORT.ordinal());
+					boolean isPreferred = form.getResponse().getToggleResponse(EditForm.Toggles.PREFERRED.ordinal());
+					
+					if(isValidServer(serverName,serverAddress,serverPort,true)) {
+						Integer sPort = Integer.valueOf(serverPort);
+						RockNetServer to = new RockNetServer(serverAddress,sPort,serverName,"",isPreferred);
+						rockNetServer.getIRockNetDB().updateServer(currentUser.getXuid(),form.getServerToEdit(),to);
+						goToManageList(false);
+					}
+				}
+				break;
+			case MANAGE:
+				if (currentForm.wasClosed()) {
+					goToMainForm();
+				}else {
+					ManageForm form = (ManageForm) currentForm;
+					if(StringUtils.equals(form.getResponse().getClickedButton().getText(),ManageForm.EDIT)){
+						goToManageList(false);
+					}else if(StringUtils.equals(form.getResponse().getClickedButton().getText(), ManageForm.REMOVE)) {
+						goToManageList(true);
+					}
+				}
+				break;
+			case EDIT_LIST:
+				if (currentForm.wasClosed()) {
+					goToManageForm();
+				}else {
+					ManageListForm form = (ManageListForm) currentForm;
+					RockNetServer choosenServer = manageUserServersList.get(form.getResponse().getDropdownResponse(0).getElementID());
+					goToEditForm(choosenServer);
+					
+				}
+				break;
+			case REMOVE_LIST:
+				if (currentForm.wasClosed()) {
+					goToManageForm();
+				}else {
+					ManageListForm form = (ManageListForm) currentForm;
+					RockNetServer choosenServer = manageUserServersList.get(form.getResponse().getDropdownResponse(0).getElementID());
+					rockNetServer.getIRockNetDB().removeServer(choosenServer);
+					goToManageList(true);
+				}
+				break;
+			case ERROR:
+				goToMainForm();
+				break;
+			default:
+				break;
+	        }
+    	}
+        return false;
+    }
+
 	@Override
     public boolean handle(RequestChunkRadiusPacket packet) {
         ChunkRadiusUpdatedPacket chunkRadiusUpdatePacket = new ChunkRadiusUpdatedPacket();
@@ -87,7 +222,6 @@ public class RockNetHandler implements BedrockPacketHandler{
 			break;
 		case HAVE_ALL_PACKS:
 			ResourcePackStackPacket rs = new ResourcePackStackPacket();
-		    //rs.setExperimental(false);
 		    rs.setForcedToAccept(false);
 		    rs.setGameVersion(rockNetServer.getCodec().getMinecraftVersion());
 		    session.sendPacket(rs);
@@ -176,6 +310,89 @@ public class RockNetHandler implements BedrockPacketHandler{
         rockNetServer.getConnectedUsers().remove(currentUser);
     }
     
+	private void goToManageList(boolean remove) {
+		manageUserServersList = rockNetServer.getIRockNetDB().getUserServers(currentUser.getXuid());
+		currentForm = new ManageListForm(manageUserServersList,remove);
+		session.sendPacketImmediately(createRequest(remove ? FormsType.REMOVE_LIST : FormsType.EDIT_LIST,currentForm));
+	}
+
+	private void goToManageForm() {
+		currentForm = new ManageForm();
+		session.sendPacketImmediately(createRequest(FormsType.MANAGE,currentForm));
+	}
+
+	private void goToErrorForm(String errorMsg) {
+		currentForm = new ErrorForm(errorMsg);
+		session.sendPacketImmediately(createRequest(FormsType.ERROR,currentForm));
+	}
+
+	private void goToEditForm(RockNetServer choosenServer) {
+		currentForm = new EditForm(choosenServer);
+		session.sendPacketImmediately(createRequest(FormsType.EDIT,currentForm));
+	}
+
+	private void goToAddForm() {
+		currentForm = new AddForm();
+		session.sendPacketImmediately(createRequest(FormsType.ADD,currentForm));
+	}
+
+	private void goToMainForm() {
+		refreshCurrentUserServerList();
+		currentForm = new MainForm(currentUser.getServerList());
+		session.sendPacketImmediately(createRequest(FormsType.MAIN,currentForm));
+	}
+
+	private void refreshCurrentUserServerList(){
+		List<RockNetServer> uList = rockNetServer.getIRockNetDB().getUserServers(currentUser.getXuid());
+		uList.addAll(rockNetServer.getIRockNetDB().getAllGlobalServers());
+		currentUser.setServerList(uList);
+	}
+	
+	private boolean isValidServer(String serverName, String serverAddress, String serverPort, boolean addToList) {
+		if(((addToList && StringUtils.isNotBlank(serverName))||!addToList) && StringUtils.isNotBlank(serverAddress) && StringUtils.isNotBlank(serverPort)) {
+			if(addToList && serverName.length() >= 253) {
+				goToErrorForm("Name is too large. (Must be less than 253)");
+				return false;
+			}
+			if(serverAddress.length() >= 253) {
+				goToErrorForm("Address is too large. (Must be less than 253)");
+				return false;
+			}
+			if(serverPort.length() >= 10) {
+				goToErrorForm("Port is too large. (Must be less than 10)");
+				return false;
+			}
+			if (!serverAddress.matches("^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$")
+				&& !serverAddress.matches("^((?!-)[A-Za-z0-9-]{1,63}(?<!-)\\.)+[A-Za-z]{2,6}$")) {        	  
+				goToErrorForm("Enter a valid address. (E.g. play.example.net, 172.16.254.1)");
+				return false;
+			}
+			int sPort = -1;
+			try {
+				sPort = Integer.valueOf(serverPort);
+			}catch (NumberFormatException e) {
+				log.error(e);
+				goToErrorForm("Enter a valid port with only numbers");
+				return false;
+			}
+			if(sPort<0 || sPort > 65535) {
+				goToErrorForm("Enter a valid port the valid range is from 0 to 65535");
+				return false;
+			}
+			return true;
+		}else {
+			if(addToList) 
+				goToErrorForm("All input need to be filled in");
+			else
+				goToErrorForm("For direct connect you need to fill the address and the port");
+			return false;
+		}
+	}
+
+	private boolean validFormPacket(ModalFormResponsePacket packet) {
+		return currentForm != null && currentForm instanceof IFormsType && packet.getFormId() == ((IFormsType)currentForm).getType().ordinal();
+	}
+
 	private static boolean validateChainData(JsonNode data) throws Exception {
         ECPublicKey lastKey = null;
         boolean validChain = false;

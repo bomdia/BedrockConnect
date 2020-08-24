@@ -32,6 +32,7 @@ CREATE TABLE "usersServers" (
 	"serverAddress"	TEXT NOT NULL,
 	"serverPort"	INT NOT NULL,
 	"serverName"	TEXT NOT NULL,
+	"preferred"		INT NOT NULL DEFAULT 0,
 	FOREIGN KEY("serverAddress") REFERENCES "servers"("serverAddress"),
 	FOREIGN KEY("serverPort") REFERENCES "servers"("serverPort"),
 	FOREIGN KEY("xuid") REFERENCES "users"("xuid"),

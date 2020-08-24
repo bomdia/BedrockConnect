@@ -18,9 +18,9 @@ import com.nukkitx.nbt.NbtList;
 import com.nukkitx.nbt.NbtMap;
 import com.nukkitx.nbt.NbtUtils;
 import com.nukkitx.protocol.bedrock.data.inventory.ItemData;
-import com.pyratron.pugmatt.bedrockconnect.BedrockConnect;
 
 import io.netty.buffer.ByteBuf;
+import it.wtfcode.rocknet.Main;
 
 // https://github.com/DragonetMC/DragonProxy/blob/rewrite/proxy/src/main/java/org/dragonet/proxy/util/PaletteManager.java
 // Author: lukeeey
@@ -36,7 +36,7 @@ public class PaletteManager {
     public static final NbtMap BIOMES;
 
     static {
-        InputStream stream = BedrockConnect.class.getClassLoader().getResourceAsStream("tables/biome_definitions.dat");
+        InputStream stream = Main.class.getClassLoader().getResourceAsStream("tables/biome_definitions.dat");
 
         NbtMap biomesTag;
 
@@ -51,7 +51,7 @@ public class PaletteManager {
     public static final NbtMap ENTITY_IDENTIFIERS;
 
     static {
-        InputStream stream = BedrockConnect.class.getClassLoader().getResourceAsStream("tables/entity_identifiers.dat");
+        InputStream stream = Main.class.getClassLoader().getResourceAsStream("tables/entity_identifiers.dat");
 
         NbtMap entityTag;
 
@@ -69,7 +69,7 @@ public class PaletteManager {
 
     static {
         /* Load creative items */
-        InputStream stream = BedrockConnect.class.getClassLoader().getResourceAsStream("tables/creative_items.json");
+        InputStream stream = Main.class.getClassLoader().getResourceAsStream("tables/creative_items.json");
 
         JsonNode creativeItemEntries;
         try {
@@ -103,7 +103,7 @@ public class PaletteManager {
 
 
     public PaletteManager() {
-        InputStream stream = BedrockConnect.class.getClassLoader().getResourceAsStream("tables/runtime_block_states.dat");
+        InputStream stream = Main.class.getClassLoader().getResourceAsStream("tables/runtime_block_states.dat");
         if (stream == null) {
             throw new AssertionError("Unable to locate block state nbt");
         }

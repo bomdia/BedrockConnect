@@ -20,17 +20,18 @@ public interface IRockNetDB {
 	public void removeUser(RockNetUser user);
 	public void removeUser(String xuid);
 	
-	public void attachUserToServer(String xuid, String serverAddress, int serverPort,String serverName);
+	public void attachUserToServer(String xuid, String serverAddress, int serverPort,String serverName, boolean preferred);
 	public void detachUserFromServer(String xuid, String serverAddress, int serverPort);
 	
 	//server part (key = serverUrl)
 	public List<RockNetServer> getAllServers();
+	public List<RockNetServer> getUserServers(String xuid);
 	public List<RockNetServer> getAllGlobalServers();
 	public RockNetServer getServer(String serverAddress, int serverPort);
 	public RockNetServer getGlobalServer(String serverAddress, int serverPort);
-	public RockNetServer createServer(String serverAddress, int serverPort, String iconPath);
+	public RockNetServer createServer(String serverAddress, int serverPort, String iconPath, boolean preferred);
 	public RockNetServer createGlobalServer(String serverAddress, int serverPort,String serverName, String iconPath);
-	public void updateServer(String xuid,RockNetServer server);
+	public void updateServer(String xuid,RockNetServer from, RockNetServer to);
 	public void updateGlobalServer(RockNetServer server);
 	public void removeServer(RockNetServer server);
 	public void removeServer(String serverAddress, int serverPort);

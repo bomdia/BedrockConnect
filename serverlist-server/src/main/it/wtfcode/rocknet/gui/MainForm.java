@@ -2,40 +2,39 @@ package it.wtfcode.rocknet.gui;
 
 import java.util.List;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.nukkitx.protocol.bedrock.packet.ModalFormRequestPacket;
+import org.apache.commons.lang3.StringUtils;
 
+import cn.nukkit.form.element.ElementButton;
+import cn.nukkit.form.element.ElementButtonImageData;
+import cn.nukkit.form.window.FormWindowSimple;
 import it.wtfcode.rocknet.Main;
+import it.wtfcode.rocknet.gui.FormsType.IFormsType;
 import it.wtfcode.rocknet.pojo.RockNetServer;
-import it.wtfcode.rocknet.utils.UIComponents;
 
-public class MainForm extends ModalFormRequestPacket {
-
+public class MainForm extends FormWindowSimple implements IFormsType{
+	public static final String MANAGE_A_SERVER = "Manage a Server";
+	public static final String ADD_A_SERVER = "Add a Server";
+	private int contextButton = 0;
 	public MainForm(List<RockNetServer> serversList) {
-		setFormId(FormsType.MAIN.ordinal());
-		
-		JsonObject out = UIComponents.createForm("form", "Server List");
-        out.addProperty("content", "");
-
-        JsonArray buttons = new JsonArray();
-
-        buttons.add(UIComponents.createButton("Connect to a Server"));
-        buttons.add(UIComponents.createButton("Remove a Server"));
+		super("RockNet Server List", "Choose your Server!");
+		addContextButton(ADD_A_SERVER);
+		addContextButton(MANAGE_A_SERVER);
         for(RockNetServer server:serversList) {
-        	if(Main.getConfig().isShowServersIcon())
-        		buttons.add(UIComponents.createButton(server.getServerName(), server.getIconPath(), FormsType.PATH));
+        	if(Main.getConfig().isShowServersIcon() && StringUtils.isNotBlank(server.getIconPath()))
+        		addButton(new ElementButton(server.getServerName(), new ElementButtonImageData(FormsType.URL, server.getIconPath())));
         	else
-        		buttons.add(UIComponents.createButton(server.getServerName()));
+        		addButton(new ElementButton(server.getServerName()));
         }
-        buttons.add(UIComponents.createButton("The Hive", "https://forum.playhive.com/uploads/default/original/1X/0d05e3240037f7592a0f16b11b57c08eba76f19c.png", "url"));
-        buttons.add(UIComponents.createButton("Mineplex", "https://www.mineplex.com/assets/www-mp/img/footer/footer_smalllogo.png", "url"));
-        buttons.add(UIComponents.createButton("CubeCraft Games", "https://i.imgur.com/aFH1NUr.png", "url"));
-        buttons.add(UIComponents.createButton("Lifeboat Network", "https://lbsg.net/wp-content/uploads/2017/06/lifeboat-square.png", "url"));
-        buttons.add(UIComponents.createButton("Mineville City", "https://pbs.twimg.com/profile_images/1095835578451537920/0-x9qcw8.png", "url"));
-        buttons.add(UIComponents.createButton("Galaxite", "https://i.imgur.com/VxXO8Of.png", "url"));
-        out.add("buttons", buttons);
-
-        setFormData(out.toString());
+	}
+	@Override
+	public FormsType getType() {
+		return FormsType.MAIN;
+	}
+	public void addContextButton(String name) {
+		addButton(new ElementButton(name));
+		contextButton = getContextButton() + 1;
+	}
+	public int getContextButton() {
+		return contextButton;
 	}
 }

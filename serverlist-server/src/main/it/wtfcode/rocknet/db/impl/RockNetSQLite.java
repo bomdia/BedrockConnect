@@ -19,7 +19,7 @@ import it.wtfcode.rocknet.utils.DBUtils;
 
 public class RockNetSQLite implements IRockNetDB {
 
-	private static final String POPULATE_FILE = "SQLite.populatedb.sql";
+	private static final String POPULATE_FILE = "populateSqlDb.sql";
 	private static final Logger log = LogManager.getLogger(RockNetSQLite.class.getName());
 	protected Connection connection = null;
 	
@@ -68,26 +68,33 @@ public class RockNetSQLite implements IRockNetDB {
 			return DBUtils.doInResultSet(statement, query, rs -> {
 				ArrayList<RockNetUser> usersList = new ArrayList<>();
 				while(rs.next()) {
-					String subQuery = "select " + 
+					String xuid = rs.getString("xuid");
+					String userName = rs.getString("userName");
+					String subQuery = "select * from (select " + 
 							"a.serverAddress, " + 
 							"a.serverPort, " + 
 							"b.serverName, " + 
+							"b.preferred, " +
 							"a.iconPath " + 
 							"from servers a " + 
 							"inner join usersServers b on " + 
 							"a.serverAddress = b.serverAddress and " + 
-							"a.serverPort = b.serverPort where b.xuid = " + rs.getLong("xuid") + 
-							" UNION ALL " + 
-							"select serverAddress, serverPort, serverName, iconPath from globalServers";
+							"a.serverPort = b.serverPort where b.xuid = " + xuid + " " +
+							"ORDER BY b.preferred, b.serverName ) c" +
+							" UNION " + 
+							"select serverAddress, serverPort, serverName, 0 as preferred, iconPath from globalServers";
 	
 					List<RockNetServer> serverList = DBUtils.doInResultSet(statement, subQuery, rs2 -> {
 						ArrayList<RockNetServer> curServerList = new ArrayList<>();
 						while(rs2.next()) {
-							curServerList.add(new RockNetServer(rs2.getString("serverAddress"), rs2.getInt("serverPort"), rs2.getString("serverName"), rs2.getString("iconPath")));
+							boolean preferred = false;
+							if(rs.getInt("preferred") > 0) preferred = true;
+							
+							curServerList.add(new RockNetServer(rs2.getString("serverAddress"), rs2.getInt("serverPort"), rs2.getString("serverName"), rs2.getString("iconPath"), preferred));
 						}
 						return curServerList;
 					});
-					usersList.add(new RockNetUser(rs.getString("xuid"), rs.getString("userName"), serverList));
+					usersList.add(new RockNetUser(xuid, userName, serverList));
 				}
 				return usersList;
 			});
@@ -101,26 +108,32 @@ public class RockNetSQLite implements IRockNetDB {
 				String query = "select * from users where xuid = " + xuid;
 				return DBUtils.doInResultSet(statement, query, rs -> {
 					if(rs.next()) {
-						String subQuery = "select " + 
+						String userName = rs.getString("userName");
+						String subQuery = "select * from (select " + 
 								"a.serverAddress, " + 
 								"a.serverPort, " + 
 								"b.serverName, " + 
+								"b.preferred, " +
 								"a.iconPath " + 
 								"from servers a " + 
 								"inner join usersServers b on " + 
 								"a.serverAddress = b.serverAddress and " + 
-								"a.serverPort = b.serverPort where b.xuid = " + xuid + 
-								" UNION ALL " + 
-								"select serverAddress, serverPort, serverName, iconPath from globalServers";
+								"a.serverPort = b.serverPort where b.xuid = " + xuid + " " +
+								"ORDER BY b.preferred, b.serverName ) c" +
+								" UNION " + 
+								"select serverAddress, serverPort, serverName, 0 as preferred, iconPath from globalServers";
 		
 						List<RockNetServer> serverList = DBUtils.doInResultSet(statement, subQuery, rs2 -> {
 							ArrayList<RockNetServer> curServerList = new ArrayList<>();
-							while(rs2.next()) 
-								curServerList.add(new RockNetServer(rs2.getString("serverAddress"), rs2.getInt("serverPort"), rs2.getString("serverName"), rs2.getString("iconPath")));
+							while(rs2.next()) {
+								boolean preferred = false;
+								if(rs.getInt("preferred") > 0) preferred = true;
+								curServerList.add(new RockNetServer(rs2.getString("serverAddress"), rs2.getInt("serverPort"), rs2.getString("serverName"), rs2.getString("iconPath"),preferred));
+							}
 							return curServerList;
 						});
 						
-						return new RockNetUser(rs.getString("xuid"), rs.getString("userName"), serverList);
+						return new RockNetUser(xuid, userName, serverList);
 					} else return null;
 				});
 			});
@@ -132,11 +145,11 @@ public class RockNetSQLite implements IRockNetDB {
 		if(StringUtils.isNotBlank(xuid) && userName != null)
 			return DBUtils.doInStatement(connection, statement -> {
 				statement.executeUpdate("insert into users values ("+xuid+",'"+userName+"')");
-				String subQuery = "select serverAddress, serverPort, serverName, iconPath from globalServer";
+				String subQuery = "select serverAddress, serverPort, serverName, iconPath from globalServers";
 				List<RockNetServer> serverList = DBUtils.doInResultSet(statement, subQuery, rs2 -> {
 					ArrayList<RockNetServer> curServerList = new ArrayList<>();
 					while(rs2.next()) 
-						curServerList.add(new RockNetServer(rs2.getString("serverAddress"), rs2.getInt("serverPort"), rs2.getString("serverName"), rs2.getString("iconPath")));
+						curServerList.add(new RockNetServer(rs2.getString("serverAddress"), rs2.getInt("serverPort"), rs2.getString("serverName"), rs2.getString("iconPath"),false));
 					return curServerList;
 				});
 				return new RockNetUser(xuid, userName, serverList);
@@ -146,7 +159,7 @@ public class RockNetSQLite implements IRockNetDB {
 
 	@Override
 	public void updateUserName(RockNetUser user) {
-		if(user != null && StringUtils.isNotBlank(user.getXuid()) && user.getUserName() != null)
+		if(user != null)
 			updateUserName(user.getXuid(),user.getUserName());
 	}
 
@@ -161,7 +174,7 @@ public class RockNetSQLite implements IRockNetDB {
 
 	@Override
 	public void removeUser(RockNetUser user) {
-		if(user != null && StringUtils.isNotBlank(user.getXuid()))
+		if(user != null)
 			removeUser(user.getXuid());
 	}
 
@@ -176,10 +189,12 @@ public class RockNetSQLite implements IRockNetDB {
 	}
 
 	@Override
-	public void attachUserToServer(String xuid, String serverAddress, int serverPort, String serverName) {
+	public void attachUserToServer(String xuid, String serverAddress, int serverPort, String serverName, boolean preferred) {
 		if(StringUtils.isNotBlank(xuid) && StringUtils.isNotBlank(serverAddress) && serverPort > 0 && serverPort <= 65535 && serverName != null)
 			DBUtils.doInStatement(connection, statement -> {
-				statement.executeUpdate("insert into usersServers values ("+xuid+",'"+serverAddress+"',"+serverPort+",'"+serverName+"')");
+				int pref = 0;
+				if(preferred) pref = 1;
+				statement.executeUpdate("insert into usersServers values ("+xuid+",'"+serverAddress+"',"+serverPort+",'"+serverName+"', "+pref+")");
 				return null;
 			});		
 	}
@@ -195,74 +210,175 @@ public class RockNetSQLite implements IRockNetDB {
 
 	@Override
 	public List<RockNetServer> getAllServers() {
-		// TODO Auto-generated method stub
-		return null;
+		return DBUtils.doInStatement(connection, statement -> {
+			String query = 	"select serverAddress, serverPort, '' as serverName, iconPath from servers";			
+			return DBUtils.doInResultSet(statement, query, rs -> {
+				
+				ArrayList<RockNetServer> serverList = new ArrayList<>();
+				while(rs.next()) {
+					serverList.add(new RockNetServer(rs.getString("serverAddress"), rs.getInt("serverPort"), rs.getString("serverName"), rs.getString("iconPath"), false));
+				}
+				return serverList;
+			});
+		});
+	}
+
+	@Override
+	public List<RockNetServer> getUserServers(String xuid) {
+		return DBUtils.doInStatement(connection, statement -> {
+			String query = "select " + 
+					"a.serverAddress, " + 
+					"a.serverPort, " + 
+					"b.serverName, " + 
+					"b.preferred, " +
+					"a.iconPath " + 
+					"from servers a " + 
+					"inner join usersServers b on " + 
+					"a.serverAddress = b.serverAddress and " + 
+					"a.serverPort = b.serverPort where b.xuid = " + xuid + " " +
+					"ORDER BY b.preferred, b.serverName ";
+			return DBUtils.doInResultSet(statement, query, rs -> {
+				
+				ArrayList<RockNetServer> serverList = new ArrayList<>();
+				while(rs.next()) {
+					boolean preferred = false;
+					if(rs.getInt("preferred") > 0) preferred = true;
+					
+					serverList.add(new RockNetServer(rs.getString("serverAddress"), rs.getInt("serverPort"), rs.getString("serverName"), rs.getString("iconPath"), preferred));
+				}
+				return serverList;
+			});
+		});
 	}
 
 	@Override
 	public List<RockNetServer> getAllGlobalServers() {
-		// TODO Auto-generated method stub
-		return null;
+		return DBUtils.doInStatement(connection, statement -> {
+			String query = 	"select serverAddress, serverPort, serverName, iconPath from globalServers";
+			return DBUtils.doInResultSet(statement, query, rs -> {
+				
+				ArrayList<RockNetServer> serverList = new ArrayList<>();
+				while(rs.next()) {
+					serverList.add(new RockNetServer(rs.getString("serverAddress"), rs.getInt("serverPort"), rs.getString("serverName"), rs.getString("iconPath"),false));
+				}
+				return serverList;
+			});
+		});
 	}
 
 	@Override
 	public RockNetServer getServer(String serverAddress, int serverPort) {
-		// TODO Auto-generated method stub
-		return null;
+		if(StringUtils.isNotBlank(serverAddress) && serverPort > 0 && serverPort <= 65535)
+			return DBUtils.doInStatement(connection, statement -> {
+				String query = 	"select serverAddress, serverPort, '' as serverName, iconPath from servers"
+								+ "where serverAddress = '"+serverAddress+"' and serverPort = "+serverPort;
+				return DBUtils.doInResultSet(statement, query, rs -> {
+					if(rs.next())						
+						return new RockNetServer(rs.getString("serverAddress"), rs.getInt("serverPort"), rs.getString("serverName"), rs.getString("iconPath"),false);
+					else return null;
+				});
+			});
+		else return null;
 	}
 
 	@Override
 	public RockNetServer getGlobalServer(String serverAddress, int serverPort) {
-		// TODO Auto-generated method stub
-		return null;
+		if(StringUtils.isNotBlank(serverAddress) && serverPort > 0 && serverPort <= 65535)
+			return DBUtils.doInStatement(connection, statement -> {
+				String query = 	"select serverAddress, serverPort, serverName, iconPath from globalServers"
+								+ "where serverAddress = '"+serverAddress+"' and serverPort = "+serverPort;
+				return DBUtils.doInResultSet(statement, query, rs -> {
+					if(rs.next())						
+						return new RockNetServer(rs.getString("serverAddress"), rs.getInt("serverPort"), rs.getString("serverName"), rs.getString("iconPath"), false);
+					else return null;
+				});
+			});
+		else return null;
 	}
 
 	@Override
-	public RockNetServer createServer(String serverAddress, int serverPort, String iconPath) {
-		// TODO Auto-generated method stub
-		return null;
+	public RockNetServer createServer(String serverAddress, int serverPort, String iconPath, boolean preferred) {
+		if(StringUtils.isNotBlank(serverAddress) && serverPort > 0 && serverPort <= 65535 && iconPath != null)
+			return DBUtils.doInStatement(connection, statement -> {
+				statement.executeUpdate("insert into servers values ('"+serverAddress+"',"+serverPort+",'"+iconPath+"')");
+				return new RockNetServer(serverAddress, serverPort, "", iconPath, preferred);
+			});
+		else return null;
 	}
 
 	@Override
 	public RockNetServer createGlobalServer(String serverAddress, int serverPort, String serverName, String iconPath) {
-		// TODO Auto-generated method stub
-		return null;
+		if(StringUtils.isNotBlank(serverAddress) && serverPort > 0 && serverPort <= 65535 && iconPath != null && serverName != null)
+			return DBUtils.doInStatement(connection, statement -> {
+				statement.executeUpdate("insert into globalServers values ('"+serverAddress+"',"+serverPort+",'"+serverName+"','"+iconPath+"')");
+				return new RockNetServer(serverAddress, serverPort, serverName, iconPath, false);
+			});
+		else return null;
 	}
 
 	@Override
-	public void updateServer(String xuid,RockNetServer server) {
-		// TODO Auto-generated method stub
+	public void updateServer(String xuid,RockNetServer from, RockNetServer to) {
+		if(StringUtils.isNotBlank(xuid) && from != null && 
+			StringUtils.isNotBlank(from.getServerAddress()) && 
+			from.getServerPort() > 0 && from.getServerPort() <= 65535 && 
+			to != null && StringUtils.isNotBlank(to.getServerAddress()) && 
+			to.getServerPort() > 0 && to.getServerPort() <= 65535 && 
+			StringUtils.isNotBlank(to.getServerName()) && to.getIconPath() != null
+			)
+			DBUtils.doInStatement(connection, statement -> {
+				int pref = 0;
+				if(to.isPreferred()) pref = 1;
+				statement.executeUpdate("update servers set iconPath = '"+to.getIconPath()+"' "
+						+ "where serverAddress = '"+from.getServerAddress()+"' and serverPort = "+from.getServerPort());
+				statement.executeUpdate("update usersServers set serverName = '"+to.getServerName()+"', preferred = " + pref + " "
+						+ "where xuid = "+xuid+" and serverAddress = '"+from.getServerAddress()+"' and serverPort = "+from.getServerPort());
+				return null;
+			});
 		
 	}
 
 	@Override
 	public void updateGlobalServer(RockNetServer server) {
-		// TODO Auto-generated method stub
+		if(server != null && StringUtils.isNotBlank(server.getServerAddress()) && 
+			server.getServerPort() > 0 && server.getServerPort() <= 65535 && 
+			StringUtils.isNotBlank(server.getServerName()) && server.getIconPath() != null)
+			DBUtils.doInStatement(connection, statement -> {
+				statement.executeUpdate("update globalServers set iconPath = '"+server.getIconPath()+"', serverName = '"+server.getServerName()+"' "
+						+ "where serverAddress = '"+server.getServerAddress()+"' and serverPort = "+server.getServerPort());
+				return null;
+			});
 		
 	}
 
 	@Override
 	public void removeServer(RockNetServer server) {
-		// TODO Auto-generated method stub
-		
+		if(server != null)
+			removeServer(server.getServerAddress(),server.getServerPort());
 	}
 
 	@Override
 	public void removeServer(String serverAddress, int serverPort) {
-		// TODO Auto-generated method stub
-		
+		if(StringUtils.isNotBlank(serverAddress) && serverPort > 0 && serverPort <= 65535)
+			DBUtils.doInStatement(connection, statement -> {
+				statement.executeUpdate("delete from usersServers where serverAddress = '"+serverAddress+"' and serverPort = "+serverPort);
+				statement.executeUpdate("delete from servers where serverAddress = '"+serverAddress+"' and serverPort = "+serverPort);
+				return null;
+			});
 	}
 
 	@Override
 	public void removeGlobalServer(RockNetServer server) {
-		// TODO Auto-generated method stub
-		
+		if(server != null)
+			removeGlobalServer(server.getServerAddress(),server.getServerPort());
 	}
 
 	@Override
 	public void removeGlobalServer(String serverAddress, int serverPort) {
-		// TODO Auto-generated method stub
-		
+		if(StringUtils.isNotBlank(serverAddress) && serverPort > 0 && serverPort <= 65535)
+			DBUtils.doInStatement(connection, statement -> {
+				statement.executeUpdate("delete from globalServers where serverAddress = '"+serverAddress+"' and serverPort = "+serverPort);
+				return null;
+			});		
 	}
 
 }

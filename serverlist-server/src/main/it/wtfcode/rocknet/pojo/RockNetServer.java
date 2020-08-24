@@ -6,16 +6,17 @@ public class RockNetServer {
 	private int serverPort;
 	private String serverName;
 	private String iconPath;
-	
+	private boolean preferred = false;
 	
 	
 	public RockNetServer() {}
 
-	public RockNetServer(String serverAddress, int serverPort, String serverName, String iconPath) {
+	public RockNetServer(String serverAddress, int serverPort, String serverName, String iconPath, boolean preferred) {
 		this.serverAddress = serverAddress;
 		this.serverPort = serverPort;
 		this.serverName = serverName;
 		this.iconPath = iconPath;
+		this.preferred = preferred;
 	}
 
 	
@@ -50,5 +51,13 @@ public class RockNetServer {
 
 	public void setIconPath(String iconPath) {
 		this.iconPath = iconPath;
+	}
+
+	public boolean isPreferred() {
+		return preferred;
+	}
+
+	public void setPreferred(boolean preferred) {
+		this.preferred = preferred;
 	}
 }

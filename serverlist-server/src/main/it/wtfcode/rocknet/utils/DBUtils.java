@@ -18,6 +18,8 @@ import org.apache.logging.log4j.Logger;
 
 public class DBUtils {
 
+	private DBUtils() {}
+	
 	private static final Logger log = LogManager.getLogger(DBUtils.class.getName());
 	
 	public static List<String> loadSQLFile(String resourcePath){
@@ -62,12 +64,13 @@ public class DBUtils {
 
 	@SuppressWarnings("unchecked")
 	public static <V> V doInStatement(Connection connection,StatementTask task) {
+		V ret = null;
 		if(connection != null && task != null) {
 			Statement statement = null;
 			try {
 				statement = connection.createStatement();
 				
-				return (V) task.run(statement);
+				ret = (V) task.run(statement);
 				
 			} catch(SQLException e)	{
 				log.error(e);
@@ -76,17 +79,18 @@ public class DBUtils {
 				closeStatement(statement);
 			}
 		}
-		return null;
+		return ret;
 	}
 	
 	@SuppressWarnings("unchecked")
 	public static <V> V doInResultSet(Statement statement, String sqlQuery, ResultSetTask task) {
+		V ret = null;
 		if(statement != null && StringUtils.isNotBlank(sqlQuery) && task != null) {
 			ResultSet rs = null;
 			try {
 				rs = statement.executeQuery(sqlQuery);
 				
-				return (V) task.run(rs);
+				ret = (V) task.run(rs);
 				
 			}catch(SQLException e) {
 				log.error(e);
@@ -95,7 +99,7 @@ public class DBUtils {
 				closeResultSet(rs);
 			}
 		}
-		return null;
+		return ret;
 	}
 	
 	public interface StatementTask {
